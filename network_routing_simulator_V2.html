@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulateur de Routage Réseau</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 30px;
+        }
+
+        .panel {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .panel h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        canvas {
+            width: 100%;
+            height: 400px;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            background: white;
+            cursor: crosshair;
+        }
+
+        .nodes-list, .edges-list {
+            max-height: 200px;
+            overflow-y: auto;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .node-item, .edge-item {
+            background: #e9ecef;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .results {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .path-result {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        .complexity-info {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        .error {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            color: #721c24;
+        }
+
+        .algorithm-select {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        @keyframes _toastAnim {
+            0%   { opacity: 0; transform: translateX(40px); }
+            12%  { opacity: 1; transform: translateX(0); }
+            78%  { opacity: 1; transform: translateX(0); }
+            100% { opacity: 0; transform: translateY(-8px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1> Simulateur de Routage Réseau</h1>
+            <p class="subtitle">Algorithmes de graphes : Dijkstra & Bellman-Ford avec analyse de complexité</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Panneau gauche : Construction du graphe -->
+            <div class="panel">
+                <h2> Construction du Graphe</h2>
+                
+                <div class="input-group">
+                    <label>Nom du Nœud (Routeur):</label>
+                    <input type="text" id="nodeName" placeholder="Ex: R1, Paris, A...">
+                </div>
+                <button class="btn" onclick="addNode()">➕ Ajouter Nœud</button>
+                <button class="btn btn-danger" onclick="clearGraph()">🗑️ Effacer Tout</button>
+                <button class="btn" id="undoBtn" onclick="undoLastAction()" disabled>↩️ Annuler la dernière action</button>
+
+                <div class="nodes-list" id="nodesList"></div>
+
+                <h2 style="margin-top: 20px;"> Ajouter une Arête (Lien)</h2>
+                <div class="input-group">
+                    <label>Nœud Source:</label>
+                    <select id="sourceNode"></select>
+                </div>
+                <div class="input-group">
+                    <label>Nœud Destination:</label>
+                    <select id="destNode"></select>
+                </div>
+                <div class="input-group">
+                    <label>Poids (Coût/Distance):</label>
+                    <input type="number" id="edgeWeight" placeholder="Ex: 10" min="1" value="1">
+                </div>
+                <div class="input-group">
+                    <label>
+                        <input type="checkbox" id="bidirectional" checked>
+                        Lien bidirectionnel
+                    </label>
+                </div>
+                <button class="btn btn-success" onclick="addEdge()">➕ Ajouter Arête</button>
+
+                <div class="edges-list" id="edgesList"></div>
+
+                <div class="stats" id="graphStats"></div>
+            </div>
+
+            <!-- Panneau droit : Visualisation et Routage -->
+            <div class="panel">
+                <h2> Visualisation du Réseau</h2>
+                <p style="background: #fff3cd; padding: 10px; border-radius: 5px; margin-bottom: 10px; font-size: 0.9em;">
+                    💡 <strong>Astuce:</strong> Cliquez et faites glisser les nœuds pour les repositionner
+                </p>
+                <canvas id="graphCanvas"></canvas>
+
+                <h2 style="margin-top: 20px;"> Calcul du Plus Court Chemin</h2>
+                <div class="algorithm-select">
+                    <div class="input-group">
+                        <label>Algorithme:</label>
+                        <select id="algorithm">
+                            <option value="dijkstra">Dijkstra</option>
+                            <option value="bellman-ford">Bellman-Ford</option>
+                            <option value="floyd-warshall">Floyd-Warshall</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Vitesse Animation:</label>
+                        <select id="animSpeed">
+                            <option value="1000">Lente</option>
+                            <option value="500" selected>Normale</option>
+                            <option value="200">Rapide</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Nœud de Départ:</label>
+                    <select id="startNode"></select>
+                </div>
+                <div class="input-group">
+                    <label>Nœud d'Arrivée:</label>
+                    <select id="endNode"></select>
+                </div>
+
+                <button class="btn btn-secondary" onclick="calculatePath()"> Calculer le Chemin</button>
+                <button class="btn" onclick="showAllPaths()"> Tous les Chemins</button>
+                <button class="btn" onclick="calculateMST()"> Arbre Couvrant Minimal (Kruskal)</button>
+
+                <div class="results" id="results"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Structure de données du graphe
+        let graph = {
+            nodes: [],
+            edges: []
+        };
+
+        let nodePositions = {};
+        const canvas = document.getElementById('graphCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Mémorise la dernière route calculée pour le recalcul automatique
+        let activeRoute = null;
+
+        // ── Historique pour la fonctionnalité d'annulation (undo) ────────
+        let actionHistory = [];
+        const MAX_HISTORY = 20;
+
+        function snapshotState() {
+            return {
+                nodes: [...graph.nodes],
+                edges: graph.edges.map(e => ({ ...e })),
+                positions: JSON.parse(JSON.stringify(nodePositions)),
+                activeRoute: activeRoute ? { ...activeRoute } : null
+            };
+        }
+
+        function pushHistory() {
+            actionHistory.push(snapshotState());
+            if (actionHistory.length > MAX_HISTORY) actionHistory.shift();
+            updateUndoButton();
+        }
+
+        function updateUndoButton() {
+            const btn = document.getElementById('undoBtn');
+            if (btn) btn.disabled = actionHistory.length === 0;
+        }
+
+        // Variables pour le déplacement des nœuds
+        let draggedNode = null;
+        let isDragging = false;
+        let mouseOffset = { x: 0, y: 0 };
+
+        // Initialisation du canvas
+        function initCanvas() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+        }
+
+        initCanvas();
+        window.addEventListener('resize', () => {
+            initCanvas();
+            drawGraph();
+        });
+
+        // Gestion des événements de souris pour déplacer les nœuds
+        canvas.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            // Vérifier si on clique sur un nœud
+            for (let node of graph.nodes) {
+                const pos = nodePositions[node];
+                const distance = Math.sqrt(Math.pow(mouseX - pos.x, 2) + Math.pow(mouseY - pos.y, 2));
+                
+                if (distance <= 25) { // Rayon du nœud
+                    draggedNode = node;
+                    isDragging = true;
+                    mouseOffset.x = mouseX - pos.x;
+                    mouseOffset.y = mouseY - pos.y;
+                    canvas.style.cursor = 'grabbing';
+                    break;
+                }
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            if (isDragging && draggedNode) {
+                // Mettre à jour la position du nœud
+                nodePositions[draggedNode].x = mouseX - mouseOffset.x;
+                nodePositions[draggedNode].y = mouseY - mouseOffset.y;
+                
+                // Limiter le nœud dans les bordures du canvas
+                nodePositions[draggedNode].x = Math.max(25, Math.min(canvas.width - 25, nodePositions[draggedNode].x));
+                nodePositions[draggedNode].y = Math.max(25, Math.min(canvas.height - 25, nodePositions[draggedNode].y));
+                
+                drawGraph();
+            } else {
+                // Changer le curseur si on survole un nœud
+                let overNode = false;
+                for (let node of graph.nodes) {
+                    const pos = nodePositions[node];
+                    const distance = Math.sqrt(Math.pow(mouseX - pos.x, 2) + Math.pow(mouseY - pos.y, 2));
+                    
+                    if (distance <= 25) {
+                        overNode = true;
+                        break;
+                    }
+                }
+                canvas.style.cursor = overNode ? 'grab' : 'crosshair';
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isDragging = false;
+            draggedNode = null;
+            canvas.style.cursor = 'crosshair';
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            isDragging = false;
+            draggedNode = null;
+            canvas.style.cursor = 'crosshair';
+        });
+
+        // Ajouter un nœud
+        function addNode() {
+            const nodeName = document.getElementById('nodeName').value.trim();
+            if (!nodeName) {
+                alert('Veuillez entrer un nom de nœud');
+                return;
+            }
+
+            if (graph.nodes.includes(nodeName)) {
+                alert('Ce nœud existe déjà');
+                return;
+            }
+
+            graph.nodes.push(nodeName);
+            
+            // Position aléatoire pour le nœud
+            nodePositions[nodeName] = {
+                x: Math.random() * (canvas.width - 100) + 50,
+                y: Math.random() * (canvas.height - 100) + 50
+            };
+
+            document.getElementById('nodeName').value = '';
+            updateUI();
+            drawGraph();
+        }
+
+        // Ajouter une arête
+        function addEdge() {
+            const source = document.getElementById('sourceNode').value;
+            const dest = document.getElementById('destNode').value;
+            const weight = parseInt(document.getElementById('edgeWeight').value);
+            const bidirectional = document.getElementById('bidirectional').checked;
+
+            if (!source || !dest) {
+                alert('Veuillez sélectionner les nœuds source et destination');
+                return;
+            }
+
+            if (source === dest) {
+                alert('Les nœuds source et destination doivent être différents');
+                return;
+            }
+
+            if (isNaN(weight) || weight <= 0) {
+                alert('Le poids doit être un nombre positif');
+                return;
+            }
+
+            graph.edges.push({ from: source, to: dest, weight: weight });
+            
+            if (bidirectional) {
+                graph.edges.push({ from: dest, to: source, weight: weight });
+            }
+
+            updateUI();
+            drawGraph();
+        }
+
+        // Effacer le graphe
+        function clearGraph() {
+            if (confirm('Voulez-vous vraiment effacer tout le graphe ?')) {
+                pushHistory();
+                graph.nodes = [];
+                graph.edges = [];
+                nodePositions = {};
+                activeRoute = null;
+                updateUI();
+                drawGraph();
+                document.getElementById('results').innerHTML = '';
+            }
+        }
+
+        // Supprimer un nœud + recalcul automatique du chemin
+        function deleteNode(nodeName) {
+            // Sauvegarder l'état complet avant suppression (pour l'annulation)
+            pushHistory();
+
+            // Sauvegarder la route active avant suppression
+            const route = activeRoute ? { ...activeRoute } : null;
+
+            // Suppression du nœud et ses arêtes
+            graph.nodes = graph.nodes.filter(n => n !== nodeName);
+            graph.edges = graph.edges.filter(e => e.from !== nodeName && e.to !== nodeName);
+            delete nodePositions[nodeName];
+            updateUI();
+
+            // ── Recalcul automatique du chemin ────────────────────────────────────
+            if (route) {
+                const { start, end, algorithm } = route;
+
+                // Source ou destination supprimée → impossible de recalculer
+                if (start === nodeName || end === nodeName) {
+                    activeRoute = null;
+                    drawGraph();
+                    document.getElementById('results').innerHTML = `<div class="error">
+                        <h4>❌ Route supprimée</h4>
+                        <p>Le nœud <strong>"${nodeName}"</strong> faisait partie de la route. Veuillez sélectionner un nouveau trajet.</p>
+                    </div>`;
+                    return;
+                }
+
+                // Les deux extrémités existent encore → recalcul immédiat
+                if (graph.nodes.includes(start) && graph.nodes.includes(end)) {
+                    const result = computeRoute(algorithm, start, end);
+
+                    if (result.path && result.path.length > 0) {
+                        // ✅ Chemin alternatif trouvé automatiquement
+                        displayResults(result, start, end, algorithm);
+                        drawGraph(result.path);
+                        activeRoute = { start, end, algorithm };
+                        _showToast(`🔄 Nœud "${nodeName}" supprimé — chemin alternatif trouvé automatiquement !`, '#28a745');
+                    } else {
+                        // ❌ Aucun chemin alternatif → message existant de l'app
+                        displayResults(result, start, end, algorithm);
+                        drawGraph();
+                        activeRoute = null;
+                        _showToast(`⚠️ Nœud "${nodeName}" supprimé — aucun chemin alternatif disponible.`, '#e67e22');
+                    }
+                } else {
+                    activeRoute = null;
+                    drawGraph();
+                    document.getElementById('results').innerHTML = '';
+                }
+            } else {
+                drawGraph();
+            }
+            // ── Fin recalcul automatique ──────────────────────────────────────────
+        }
+
+        // Affiche un toast de notification temporaire
+        function _showToast(message, color) {
+            const t = document.createElement('div');
+            t.style.cssText = `
+                position:fixed;top:22px;right:22px;z-index:9999;
+                background:${color};color:white;padding:14px 20px;
+                border-radius:10px;font-weight:bold;max-width:390px;
+                box-shadow:0 6px 20px rgba(0,0,0,0.25);
+                animation:_toastAnim 4s forwards;
+            `;
+            t.textContent = message;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 4200);
+        }
+
+        // Supprimer une arête
+        function deleteEdge(index) {
+            pushHistory();
+            graph.edges.splice(index, 1);
+            updateUI();
+            drawGraph();
+        }
+
+        // ── Fonctionnalité d'annulation (undo) ────────────────────────────────
+        // Restaure l'état du graphe (nœuds, arêtes, positions, route active)
+        // tel qu'il était juste avant la dernière suppression ou réinitialisation.
+        function undoLastAction() {
+            const state = actionHistory.pop();
+            if (!state) return;
+
+            graph.nodes = state.nodes;
+            graph.edges = state.edges;
+            nodePositions = state.positions;
+            activeRoute = state.activeRoute;
+
+            updateUI();
+            updateUndoButton();
+
+            if (activeRoute) {
+                const { start, end, algorithm } = activeRoute;
+                const result = computeRoute(algorithm, start, end);
+                displayResults(result, start, end, algorithm);
+                drawGraph(result.path);
+            } else {
+                document.getElementById('results').innerHTML = '';
+                drawGraph();
+            }
+
+            _showToast('↩️ Retour à l\'état précédent', '#3498db');
+        }
+        // ── Fin fonctionnalité d'annulation ───────────────────────────────────
+
+        // Mettre à jour l'interface
+        function updateUI() {
+            // Mise à jour de la liste des nœuds
+            const nodesList = document.getElementById('nodesList');
+            nodesList.innerHTML = graph.nodes.length === 0 
+                ? '<p style="color: #999; text-align: center;">Aucun nœud</p>'
+                : graph.nodes.map(node => `
+                    <div class="node-item">
+                        <strong>${node}</strong>
+                        <button class="delete-btn" onclick="deleteNode('${node}')">Supprimer</button>
+                    </div>
+                `).join('');
+
+            // Mise à jour de la liste des arêtes
+            const edgesList = document.getElementById('edgesList');
+            edgesList.innerHTML = graph.edges.length === 0
+                ? '<p style="color: #999; text-align: center;">Aucune arête</p>'
+                : graph.edges.map((edge, idx) => `
+                    <div class="edge-item">
+                        <span>${edge.from} → ${edge.to} (${edge.weight})</span>
+                        <button class="delete-btn" onclick="deleteEdge(${idx})">Supprimer</button>
+                    </div>
+                `).join('');
+
+            // Mise à jour des sélecteurs
+            const selects = ['sourceNode', 'destNode', 'startNode', 'endNode'];
+            selects.forEach(id => {
+                const select = document.getElementById(id);
+                const currentValue = select.value;
+                select.innerHTML = graph.nodes.length === 0
+                    ? '<option value="">Aucun nœud disponible</option>'
+                    : graph.nodes.map(node => 
+                        `<option value="${node}" ${node === currentValue ? 'selected' : ''}>${node}</option>`
+                    ).join('');
+            });
+
+            // Mise à jour des statistiques
+            const stats = document.getElementById('graphStats');
+            stats.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${graph.nodes.length}</div>
+                    <div class="stat-label">Nœuds</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${graph.edges.length}</div>
+                    <div class="stat-label">Arêtes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${graph.nodes.length > 0 ? (graph.edges.length / graph.nodes.length).toFixed(1) : 0}</div>
+                    <div class="stat-label">Densité</div>
+                </div>
+            `;
+        }
+
+        // Dessiner le graphe
+        // highlightPath : liste ordonnée de nœuds à surligner (résultat d'un plus court chemin)
+        // highlightEdgeSet : Set de clés "from|to" à surligner (ex: arêtes d'un arbre couvrant minimal)
+        function drawGraph(highlightPath = null, highlightEdgeSet = null) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Dessiner les arêtes
+            graph.edges.forEach(edge => {
+                const from = nodePositions[edge.from];
+                const to = nodePositions[edge.to];
+                
+                const isHighlighted = (highlightPath && 
+                    highlightPath.some((p, i) => 
+                        i < highlightPath.length - 1 && 
+                        p === edge.from && 
+                        highlightPath[i + 1] === edge.to
+                    )) ||
+                    (highlightEdgeSet && highlightEdgeSet.has(edge.from + '|' + edge.to));
+
+                ctx.beginPath();
+                ctx.moveTo(from.x, from.y);
+                ctx.lineTo(to.x, to.y);
+                ctx.strokeStyle = isHighlighted ? '#28a745' : '#6c757d';
+                ctx.lineWidth = isHighlighted ? 4 : 2;
+                ctx.stroke();
+
+                // Flèche
+                const angle = Math.atan2(to.y - from.y, to.x - from.x);
+                const arrowSize = 15;
+                ctx.beginPath();
+                ctx.moveTo(to.x - 30 * Math.cos(angle), to.y - 30 * Math.sin(angle));
+                ctx.lineTo(
+                    to.x - 30 * Math.cos(angle) - arrowSize * Math.cos(angle - Math.PI / 6),
+                    to.y - 30 * Math.sin(angle) - arrowSize * Math.sin(angle - Math.PI / 6)
+                );
+                ctx.lineTo(
+                    to.x - 30 * Math.cos(angle) - arrowSize * Math.cos(angle + Math.PI / 6),
+                    to.y - 30 * Math.sin(angle) - arrowSize * Math.sin(angle + Math.PI / 6)
+                );
+                ctx.closePath();
+                ctx.fillStyle = isHighlighted ? '#28a745' : '#6c757d';
+                ctx.fill();
+
+                // Poids
+                const midX = (from.x + to.x) / 2;
+                const midY = (from.y + to.y) / 2;
+                ctx.fillStyle = 'white';
+                ctx.fillRect(midX - 15, midY - 10, 30, 20);
+                ctx.fillStyle = isHighlighted ? '#28a745' : '#333';
+                ctx.font = 'bold 12px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(edge.weight, midX, midY);
+            });
+
+            // Dessiner les nœuds
+            graph.nodes.forEach(node => {
+                const pos = nodePositions[node];
+                const isHighlighted = highlightPath && highlightPath.includes(node);
+                
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, 25, 0, 2 * Math.PI);
+                ctx.fillStyle = isHighlighted ? '#28a745' : '#667eea';
+                ctx.fill();
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(node, pos.x, pos.y);
+            });
+        }
+
+        // Algorithme de Dijkstra
+        function dijkstra(start, end) {
+            const distances = {};
+            const previous = {};
+            const unvisited = new Set(graph.nodes);
+            const steps = [];
+
+            graph.nodes.forEach(node => {
+                distances[node] = node === start ? 0 : Infinity;
+                previous[node] = null;
+            });
+
+            let operations = 0;
+
+            while (unvisited.size > 0) {
+                let current = null;
+                let minDist = Infinity;
+                
+                unvisited.forEach(node => {
+                    operations++;
+                    if (distances[node] < minDist) {
+                        minDist = distances[node];
+                        current = node;
+                    }
+                });
+
+                if (current === null || distances[current] === Infinity) break;
+                
+                unvisited.delete(current);
+                steps.push({ node: current, distances: { ...distances } });
+
+                if (current === end) break;
+
+                graph.edges.filter(e => e.from === current).forEach(edge => {
+                    operations++;
+                    const alt = distances[current] + edge.weight;
+                    if (alt < distances[edge.to]) {
+                        distances[edge.to] = alt;
+                        previous[edge.to] = current;
+                    }
+                });
+            }
+
+            const path = [];
+            let current = end;
+            while (current !== null) {
+                path.unshift(current);
+                current = previous[current];
+            }
+
+            return {
+                path: distances[end] !== Infinity ? path : null,
+                distance: distances[end],
+                distances: distances,
+                operations: operations,
+                steps: steps
+            };
+        }
+
+        // Algorithme de Bellman-Ford
+        function bellmanFord(start, end) {
+            const distances = {};
+            const previous = {};
+            const steps = [];
+            let operations = 0;
+
+            graph.nodes.forEach(node => {
+                distances[node] = node === start ? 0 : Infinity;
+                previous[node] = null;
+            });
+
+            for (let i = 0; i < graph.nodes.length - 1; i++) {
+                let updated = false;
+                graph.edges.forEach(edge => {
+                    operations++;
+                    if (distances[edge.from] !== Infinity) {
+                        const alt = distances[edge.from] + edge.weight;
+                        if (alt < distances[edge.to]) {
+                            distances[edge.to] = alt;
+                            previous[edge.to] = edge.from;
+                            updated = true;
+                        }
+                    }
+                });
+                steps.push({ iteration: i + 1, distances: { ...distances } });
+                if (!updated) break;
+            }
+
+            // Détection de cycle négatif
+            let hasNegativeCycle = false;
+            graph.edges.forEach(edge => {
+                operations++;
+                if (distances[edge.from] !== Infinity &&
+                    distances[edge.from] + edge.weight < distances[edge.to]) {
+                    hasNegativeCycle = true;
+                }
+            });
+
+            const path = [];
+            let current = end;
+            while (current !== null) {
+                path.unshift(current);
+                current = previous[current];
+            }
+
+            return {
+                path: distances[end] !== Infinity ? path : null,
+                distance: distances[end],
+                distances: distances,
+                operations: operations,
+                steps: steps,
+                hasNegativeCycle: hasNegativeCycle
+            };
+        }
+
+        // Algorithme de Floyd-Warshall : distances entre TOUTES les paires de nœuds.
+        // Utile pour précalculer une table de routage complète (comme le ferait
+        // un routeur à état de liens qui connaît toute la topologie).
+        function floydWarshall() {
+            const nodes = graph.nodes;
+            const n = nodes.length;
+            const index = {};
+            nodes.forEach((node, i) => index[node] = i);
+
+            const dist = Array.from({ length: n }, () => Array(n).fill(Infinity));
+            const next = Array.from({ length: n }, () => Array(n).fill(null));
+            let operations = 0;
+
+            for (let i = 0; i < n; i++) dist[i][i] = 0;
+
+            graph.edges.forEach(edge => {
+                const i = index[edge.from];
+                const j = index[edge.to];
+                if (edge.weight < dist[i][j]) {
+                    dist[i][j] = edge.weight;
+                    next[i][j] = j;
+                }
+            });
+
+            for (let k = 0; k < n; k++) {
+                for (let i = 0; i < n; i++) {
+                    for (let j = 0; j < n; j++) {
+                        operations++;
+                        if (dist[i][k] + dist[k][j] < dist[i][j]) {
+                            dist[i][j] = dist[i][k] + dist[k][j];
+                            next[i][j] = next[i][k];
+                        }
+                    }
+                }
+            }
+
+            return { nodes, index, dist, next, operations };
+        }
+
+        // Reconstruit le chemin start → end à partir de la matrice "next" de Floyd-Warshall
+        function floydWarshallPath(fw, start, end) {
+            const i = fw.index[start];
+            const j = fw.index[end];
+            if (fw.dist[i][j] === Infinity || fw.next[i][j] === null) return null;
+            const path = [start];
+            let current = i;
+            while (current !== j) {
+                current = fw.next[current][j];
+                path.push(fw.nodes[current]);
+            }
+            return path;
+        }
+
+        // Point d'entrée unique pour calculer une route selon l'algorithme choisi.
+        // Centralise Dijkstra / Bellman-Ford / Floyd-Warshall pour que le calcul
+        // manuel, le recalcul automatique (panne) et l'annulation utilisent
+        // exactement la même logique.
+        function computeRoute(algorithm, start, end) {
+            if (algorithm === 'dijkstra') return dijkstra(start, end);
+            if (algorithm === 'bellman-ford') return bellmanFord(start, end);
+            if (algorithm === 'floyd-warshall') {
+                const fw = floydWarshall();
+                const i = fw.index[start];
+                const distances = {};
+                fw.nodes.forEach((node, k) => distances[node] = fw.dist[i][k]);
+                return {
+                    path: floydWarshallPath(fw, start, end),
+                    distance: fw.dist[i][fw.index[end]],
+                    distances: distances,
+                    operations: fw.operations
+                };
+            }
+        }
+
+        // Algorithme de Kruskal : arbre couvrant minimal (MST).
+        // Illustre un besoin différent de celui d'un plus court chemin : trouver
+        // l'ensemble de liens le moins coûteux permettant de garder TOUS les
+        // routeurs connectés (conception d'une topologie de secours/backbone).
+        function kruskal() {
+            const parent = {};
+            graph.nodes.forEach(n => parent[n] = n);
+
+            function find(x) {
+                if (parent[x] !== x) parent[x] = find(parent[x]);
+                return parent[x];
+            }
+            function union(a, b) {
+                const ra = find(a), rb = find(b);
+                if (ra === rb) return false;
+                parent[ra] = rb;
+                return true;
+            }
+
+            // Dédoublonnage des arêtes bidirectionnelles (A→B et B→A comptent pour un seul lien)
+            const seen = new Set();
+            const uniqueEdges = [];
+            graph.edges.forEach(e => {
+                const key1 = e.from + '|' + e.to;
+                const key2 = e.to + '|' + e.from;
+                if (!seen.has(key1) && !seen.has(key2)) {
+                    seen.add(key1);
+                    uniqueEdges.push(e);
+                }
+            });
+            uniqueEdges.sort((a, b) => a.weight - b.weight);
+
+            const mstEdges = [];
+            let totalWeight = 0;
+            let operations = 0;
+
+            uniqueEdges.forEach(e => {
+                operations++;
+                if (union(e.from, e.to)) {
+                    mstEdges.push(e);
+                    totalWeight += e.weight;
+                }
+            });
+
+            const roots = new Set(graph.nodes.map(find));
+            const isConnected = roots.size <= 1;
+
+            return { mstEdges, totalWeight, operations, isConnected };
+        }
+
+        // Calcule et affiche l'arbre couvrant minimal
+        function calculateMST() {
+            if (graph.nodes.length === 0) {
+                alert('Ajoutez au moins un nœud avant de calculer un arbre couvrant.');
+                return;
+            }
+
+            const result = kruskal();
+            const edgeSet = new Set();
+            result.mstEdges.forEach(e => {
+                edgeSet.add(e.from + '|' + e.to);
+                edgeSet.add(e.to + '|' + e.from);
+            });
+            drawGraph(null, edgeSet);
+
+            const results = document.getElementById('results');
+            let html = `<h3>🌳 Arbre Couvrant Minimal (Algorithme de Kruskal)</h3>`;
+
+            if (!result.isConnected) {
+                html += `<div class="error">
+                    <h4>⚠️ Graphe non connexe</h4>
+                    <p>Le graphe comporte plusieurs composantes distinctes : l'ensemble de liens obtenu est
+                    une forêt couvrante minimale (un arbre par composante), et non un arbre unique.</p>
+                </div>`;
+            }
+
+            html += '<table style="width:100%;border-collapse:collapse;margin-top:10px;">';
+            html += '<tr><th style="text-align:left;padding:6px;border-bottom:2px solid #ddd;">Lien retenu</th><th style="text-align:left;padding:6px;border-bottom:2px solid #ddd;">Poids</th></tr>';
+            result.mstEdges.forEach(e => {
+                html += `<tr><td style="padding:6px;border-bottom:1px solid #eee;">${e.from} — ${e.to}</td><td style="padding:6px;border-bottom:1px solid #eee;">${e.weight}</td></tr>`;
+            });
+            html += '</table>';
+
+            html += `<div class="complexity-info">
+                <h4>📊 Analyse</h4>
+                <p><strong>Algorithme :</strong> Kruskal (structure Union-Find)</p>
+                <p><strong>Complexité temporelle :</strong> O(E log E)</p>
+                <p><strong>Poids total de l'arbre :</strong> ${result.totalWeight}</p>
+                <p><strong>Liens sélectionnés :</strong> ${result.mstEdges.length} / ${graph.nodes.length - 1} nécessaires pour un arbre unique</p>
+                <p><strong>Opérations effectuées :</strong> ${result.operations}</p>
+            </div>`;
+
+            results.innerHTML = html;
+        }
+
+        // Calculer et afficher le chemin
+        function calculatePath() {
+            const start = document.getElementById('startNode').value;
+            const end = document.getElementById('endNode').value;
+            const algorithm = document.getElementById('algorithm').value;
+
+            if (!start || !end) {
+                alert('Veuillez sélectionner les nœuds de départ et d\'arrivée');
+                return;
+            }
+
+            if (graph.nodes.length === 0) {
+                alert('Le graphe est vide. Ajoutez des nœuds et des arêtes.');
+                return;
+            }
+
+            const result = computeRoute(algorithm, start, end);
+
+            // Mémoriser la route pour recalcul automatique lors des suppressions
+            activeRoute = { start, end, algorithm };
+
+            displayResults(result, start, end, algorithm);
+            
+            if (result.path) {
+                drawGraph(result.path);
+            }
+        }
+
+        // Afficher tous les chemins depuis un nœud
+        function showAllPaths() {
+            const start = document.getElementById('startNode').value;
+            const algorithm = document.getElementById('algorithm').value;
+
+            if (!start) {
+                alert('Veuillez sélectionner un nœud de départ');
+                return;
+            }
+
+            const results = document.getElementById('results');
+            let html = `<h3>Tous les chemins depuis "${start}" (${algorithm.toUpperCase()})</h3>`;
+            
+            html += '<table><tr><th>Destination</th><th>Distance</th><th>Chemin</th></tr>';
+            
+            graph.nodes.forEach(node => {
+                if (node !== start) {
+                    const result = computeRoute(algorithm, start, node);
+                    
+                    html += `<tr>
+                        <td><strong>${node}</strong></td>
+                        <td>${result.distance === Infinity ? '∞' : result.distance}</td>
+                        <td>${result.path ? result.path.join(' → ') : 'Pas de chemin'}</td>
+                    </tr>`;
+                }
+            });
+            
+            html += '</table>';
+            
+            const V = graph.nodes.length;
+            const E = graph.edges.length;
+            const algoLabels = { 'dijkstra': 'Dijkstra', 'bellman-ford': 'Bellman-Ford', 'floyd-warshall': 'Floyd-Warshall' };
+            const complexity = algorithm === 'dijkstra' 
+                ? `O((V + E) log V) ≈ O(${V + E} × log ${V})`
+                : algorithm === 'bellman-ford'
+                ? `O(V × E) ≈ O(${V} × ${E})`
+                : `O(V³) ≈ O(${V}³)`;
+            
+            html += `<div class="complexity-info">
+                <h4>📊 Analyse de Complexité</h4>
+                <p><strong>Algorithme:</strong> ${algoLabels[algorithm] || algorithm}</p>
+                <p><strong>Complexité:</strong> ${complexity}</p>
+                <p><strong>Nœuds (V):</strong> ${V}</p>
+                <p><strong>Arêtes (E):</strong> ${E}</p>
+            </div>`;
+            
+            results.innerHTML = html;
+        }
+
+        // Afficher les résultats
+        function displayResults(result, start, end, algorithm) {
+            const results = document.getElementById('results');
+            let html = '';
+
+            if (result.hasNegativeCycle) {
+                html = `<div class="error">
+                    <h4>⚠️ Cycle Négatif Détecté</h4>
+                    <p>Le graphe contient un cycle avec un poids total négatif. Les distances minimales ne sont pas définies.</p>
+                </div>`;
+            } else if (result.path) {
+                html = `<div class="path-result">
+                    <h4>✅ Chemin Trouvé</h4>
+                    <p><strong>De:</strong> ${start} <strong>À:</strong> ${end}</p>
+                    <p><strong>Distance:</strong> ${result.distance}</p>
+                    <p><strong>Chemin:</strong> ${result.path.join(' → ')}</p>
+                </div>`;
+            } else {
+                html = `<div class="error">
+                    <h4>❌ Aucun Chemin</h4>
+                    <p>Il n'existe pas de chemin entre ${start} et ${end}</p>
+                </div>`;
+            }
+
+            const V = graph.nodes.length;
+            const E = graph.edges.length;
+            const algoLabels = { 'dijkstra': 'Dijkstra', 'bellman-ford': 'Bellman-Ford', 'floyd-warshall': 'Floyd-Warshall' };
+            const complexityTime = algorithm === 'dijkstra' 
+                ? `O((V + E) log V)`
+                : algorithm === 'bellman-ford'
+                ? `O(V × E)`
+                : `O(V³)`;
+            const complexitySpace = algorithm === 'floyd-warshall' ? `O(V²)` : `O(V)`;
+            const theoreticalOps = algorithm === 'dijkstra'
+                ? Math.ceil((V + E) * Math.log2(V || 1))
+                : algorithm === 'bellman-ford'
+                ? V * E
+                : V * V * V;
+
+            html += `<div class="complexity-info">
+                <h4>📊 Analyse de Complexité</h4>
+                <p><strong>Algorithme:</strong> ${algoLabels[algorithm] || algorithm}</p>
+                <p><strong>Complexité Temporelle:</strong> ${complexityTime}</p>
+                <p><strong>Complexité Spatiale:</strong> ${complexitySpace}</p>
+                <p><strong>Opérations effectuées:</strong> ${result.operations}</p>
+                <p><strong>Estimation théorique:</strong> ${theoreticalOps} opérations</p>
+            </div>`;
+
+            html += `<h4 style="margin-top: 20px;">📋 Distances depuis ${start}:</h4>`;
+            html += '<table><tr><th>Nœud</th><th>Distance</th></tr>';
+            Object.entries(result.distances).forEach(([node, dist]) => {
+                html += `<tr><td>${node}</td><td>${dist === Infinity ? '∞' : dist}</td></tr>`;
+            });
+            html += '</table>';
+
+            results.innerHTML = html;
+        }
+
+        // Initialisation
+        updateUI();
+        drawGraph();
+        updateUndoButton();
+    </script>
+</body>
+</html>
