@@ -1,9 +1,23 @@
 <!DOCTYPE html>
+<!--
+    ============================================================
+    Simulateur de Routage Réseau
+    ------------------------------------------------------------
+    Auteur      : Richard Kalonji
+    Projet      : Master 2 Réseaux et Télécommunications
+                  Faculté des Sciences Informatiques
+                  Université Catholique du Congo (UCC), Kinshasa
+    Module      : Questions Spéciales de Programmation Avancée
+    © 2026 Richard Kalonji — Tous droits réservés
+    ============================================================
+-->
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulateur de Routage Réseau</title>
+    <meta name="author" content="Richard Kalonji">
+    <meta name="description" content="Simulateur de routage réseau — Dijkstra, Bellman-Ford, Floyd-Warshall et Kruskal, avec tolérance aux pannes. Conçu par Richard Kalonji.">
+    <title>Simulateur de Routage Réseau — Richard Kalonji</title>
     <style>
         * {
             margin: 0;
@@ -350,7 +364,18 @@
         </div>
     </div>
 
+    <footer style="text-align:center; padding: 20px; color: rgba(255,255,255,0.85); font-size: 0.9em;">
+        © 2026 Richard Kalonji — Simulateur de Routage Réseau — Master 2 Réseaux et Télécommunications, UCC
+    </footer>
+
     <script>
+        /*
+         * Simulateur de Routage Réseau
+         * Auteur : Richard Kalonji
+         * © 2026 Richard Kalonji
+         * Algorithmes implémentés : Dijkstra, Bellman-Ford, Floyd-Warshall, Kruskal
+         */
+
         // Structure de données du graphe
         let graph = {
             nodes: [],
