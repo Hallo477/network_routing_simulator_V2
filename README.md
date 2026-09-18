@@ -121,4 +121,5 @@ Master en Réseaux et Télécommunications — Université Catholique du Congo
 
 ## Licence
 
+© 2026 Richard Kalonji — Tous droits réservés.
 Projet académique — usage pédagogique.
